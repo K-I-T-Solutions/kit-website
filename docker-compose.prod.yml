@@ -1,0 +1,68 @@
+services:
+  caddy:
+    build:
+      context: .
+      dockerfile: Dockerfile.caddy
+    container_name: caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - web
+    depends_on:
+      - kit-website-blue
+      - kit-website-green
+
+  # Blue instance
+  kit-website-blue:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    container_name: kit-website-blue
+    restart: unless-stopped
+    expose:
+      - "3000"
+    networks:
+      - web
+    environment:
+      - NODE_ENV=production
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+
+  # Green instance
+  kit-website-green:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    container_name: kit-website-green
+    restart: unless-stopped
+    expose:
+      - "3000"
+    networks:
+      - web
+    environment:
+      - NODE_ENV=production
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  caddy_data:
+  caddy_config:
+
+networks:
+  web:

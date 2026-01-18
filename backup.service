@@ -1,0 +1,11 @@
+[Unit]
+Description=Daily Backup for KIT Website
+After=network.target
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/srv/kit-website
+ExecStart=/srv/kit-website/backup.sh
+StandardOutput=journal
+StandardError=journal
