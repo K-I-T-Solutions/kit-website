@@ -1,5 +1,6 @@
 #!/bin/bash
-set -e
+# Don't exit on error - we want to handle errors gracefully
+set +e
 
 # KIT Website Deployment Script
 # This script pulls latest changes and rebuilds the containers
