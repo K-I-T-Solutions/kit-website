@@ -1,0 +1,37 @@
+version: "3.8"
+
+services:
+  caddy:
+    image: caddy:2.8.4-cloudflare
+    container_name: caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - web
+    depends_on:
+      - kit-website
+
+  kit-website:
+    build:
+      context: ./kit-website
+      dockerfile: Dockerfile
+    container_name: kit-website
+    restart: unless-stopped
+    expose:
+      - "3000"
+    networks:
+      - web
+    environment:
+      - NODE_ENV=production
+
+volumes:
+  caddy_data:
+  caddy_config:

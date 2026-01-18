@@ -1,0 +1,28 @@
+{
+    email info@kit-it-koblenz.de
+    acme_dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+    # Optional: weniger Logs
+    log {
+        output file /var/log/caddy/access.log
+        level INFO
+    }
+}
+
+kit-it-koblenz.de, www.kit-it-koblenz.de {
+    encode gzip
+    reverse_proxy kit-website:3000
+
+    @www host www.kit-it-koblenz.de
+    redir @www https://kit-it-koblenz.de{uri}
+
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        Cache-Control "public, max-age=3600"
+    }
+
+    handle_errors {
+        @404 expression {http.error.status_code} == 404
+        rewrite @404 /404.html
+        file_server
+    }
+}
