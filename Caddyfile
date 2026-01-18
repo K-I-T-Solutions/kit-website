@@ -1,28 +1,41 @@
-{
-    email info@kit-it-koblenz.de
-    acme_dns cloudflare {env.CLOUDFLARE_API_TOKEN}
-    # Optional: weniger Logs
-    log {
-        output file /var/log/caddy/access.log
-        level INFO
-    }
-}
-
 kit-it-koblenz.de, www.kit-it-koblenz.de {
-    encode gzip
-    reverse_proxy kit-website:3000
+
+    encode gzip zstd
 
     @www host www.kit-it-koblenz.de
     redir @www https://kit-it-koblenz.de{uri}
 
+    reverse_proxy kit-website:3000
+
     header {
         Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Frame-Options "DENY"
+        X-Content-Type-Options "nosniff"
+        X-XSS-Protection "1; mode=block"
+        Referrer-Policy "strict-origin-when-cross-origin"
+
+        # --- CSP fix für Next.js ---
+        +Content-Security-Policy "
+            default-src 'self';
+            img-src 'self' data:;
+            script-src 'self' 'unsafe-inline';
+            style-src 'self' 'unsafe-inline';
+            font-src 'self';
+            connect-src 'self' https://vitals.vercel-insights.com;
+            frame-ancestors 'none';
+        "
+
+        Permissions-Policy "
+            camera=(),
+            microphone=(),
+            geolocation=(),
+            browsing-topics=()
+        "
+
         Cache-Control "public, max-age=3600"
     }
 
-    handle_errors {
-        @404 expression {http.error.status_code} == 404
-        rewrite @404 /404.html
-        file_server
-    }
+    @blocked_methods method OPTIONS TRACE TRACK PUT DELETE PATCH CONNECT
+    respond @blocked_methods 405
 }
+

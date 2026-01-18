@@ -1,8 +1,8 @@
-version: "3.8"
-
 services:
   caddy:
-    image: caddy:2.8.4-cloudflare
+    build:
+      context: .
+      dockerfile: Dockerfile.caddy
     container_name: caddy
     restart: unless-stopped
     ports:
@@ -21,7 +21,7 @@ services:
 
   kit-website:
     build:
-      context: ./kit-website
+      context: ./
       dockerfile: Dockerfile
     container_name: kit-website
     restart: unless-stopped
@@ -35,3 +35,6 @@ services:
 volumes:
   caddy_data:
   caddy_config:
+
+networks:
+  web:

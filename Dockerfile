@@ -11,10 +11,10 @@ RUN npm install -g pnpm
 COPY package.json pnpm-lock.yaml* ./
 RUN pnpm install --frozen-lockfile
 
-# Copy rest of the source
+# Copy the rest of the source
 COPY . .
 
-# Build Next.js app
+# Build the app
 RUN pnpm run build
 
 # =============================
@@ -26,13 +26,16 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
 
+# 👉 Install pnpm again for runtime (needed for pnpm start)
+RUN npm install -g pnpm
+
 # Copy build artifacts from builder
 COPY --from=builder /app ./
 
-# Ensure minimal image size
-RUN rm -rf node_modules && pnpm install --prod --frozen-lockfile
+# Remove dev dependencies (keeps image small)
+RUN pnpm prune --prod
 
 EXPOSE 3000
 
-# Start Next.js server
+# Start the app
 CMD ["pnpm", "run", "start"]
